@@ -1,4 +1,4 @@
 tgytbot.log
-./tgytbot
-./configs/config.env
-./configs/config_global.env
+tgytbot
+configs/config.env
+configs/config_global.env
