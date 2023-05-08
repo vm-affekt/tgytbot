@@ -1,0 +1,9 @@
+tgytbot
+tgytbot_debug.log
+tgytbot_prod.log
+tgytbot.log
+.idea
+.git
+.gitignore
+buildrun.sh
+configs
