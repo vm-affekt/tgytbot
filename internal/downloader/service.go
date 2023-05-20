@@ -3,12 +3,15 @@ package downloader
 import (
 	"context"
 	"fmt"
+	"io"
+	"net/url"
+	"os/exec"
+	"strings"
+
 	"github.com/kkdai/youtube/v2"
 	"github.com/vm-affekt/tgytbot/internal/app"
 	"github.com/vm-affekt/tgytbot/internal/logging"
 	"go.uber.org/zap"
-	"io"
-	"os/exec"
 )
 
 type Service struct {
@@ -52,6 +55,8 @@ func (s *Service) downloadStream(ctx context.Context, link string, formatType st
 	ytClient := &youtube.Client{
 		Debug: s.debugMode,
 	}
+
+	link = s.transformLink(ctx, link)
 	video, err := ytClient.GetVideo(link)
 	if err != nil {
 		return app.DownloadResult{}, fmt.Errorf("failed to get video by link: %w", err)
@@ -103,6 +108,28 @@ func (s *Service) convertMP4ToMP3(ctx context.Context, mp4Stream io.ReadCloser) 
 		}
 		log.Info("ffmpeg converter done!")
 	}()
-	return mp3Stream, nil
 
+	return mp3Stream, nil
+}
+
+// transformLink extracts and returns video id if link has '/live/' path.
+// Youtube downloader lib has bug: it doesn't recognize '/live/' links.
+func (s *Service) transformLink(ctx context.Context, link string) string {
+	const livePath = "/live/"
+	log := logging.FromContextS(ctx)
+	parsedURL, err := url.Parse(link)
+	if err != nil {
+		log.Errorf("downloader.transformLink: failed to parse url: %v", err)
+		return link
+	}
+	path := parsedURL.Path
+	if !strings.HasPrefix(path, livePath) {
+		return link
+	}
+	startIdx := len(livePath)
+	if len(path) == startIdx {
+		log.Errorf("downloader.transformLink: no video_id after %s", livePath)
+		return link
+	}
+	return path[startIdx:]
 }

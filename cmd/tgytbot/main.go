@@ -2,29 +2,17 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
+
 	"github.com/spf13/viper"
 	"github.com/vm-affekt/tgytbot/internal/dialogs"
 	"github.com/vm-affekt/tgytbot/internal/downloader"
 	"github.com/vm-affekt/tgytbot/internal/logging"
 	"github.com/vm-affekt/tgytbot/internal/telegram"
 	"go.uber.org/zap"
-	"log"
-	"os"
-	"os/signal"
-	"syscall"
 )
-
-type progressWriter struct {
-	total   int64
-	current int64
-}
-
-func (pw *progressWriter) Write(p []byte) (n int, err error) {
-	pw.current += int64(len(p))
-	percent := (float64(pw.current) / float64(pw.total)) * 100.0
-	log.Printf("current downloaded: %v (%.2f%%)", pw.current, percent)
-	return int(pw.current), nil
-}
 
 const (
 	modeEnvProduction = "prod"
@@ -85,6 +73,8 @@ func main() {
 
 	log.Infof("[TELEGRAM YOUTUBE DOWNLOADER BOT] Application is running. Environment mode=%q", modeEnv)
 	defer log.Sync()
+
+	log.Infof("Used config file path: %v", viper.ConfigFileUsed())
 
 	tgApiKey := viper.GetString("TELEGRAM_API_KEY")
 	if tgApiKey == "" {

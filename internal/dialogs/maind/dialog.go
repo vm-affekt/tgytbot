@@ -9,7 +9,6 @@ import (
 
 type dialog struct {
 	rup     app.ReqUserProvider
-	counter int
 }
 
 func New(rup app.ReqUserProvider) app.Dialog {
