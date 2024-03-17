@@ -4,15 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"math"
+	"sync"
+	"time"
+
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/vm-affekt/tgytbot/internal/app"
 	"github.com/vm-affekt/tgytbot/internal/dialogs/progress"
 	"github.com/vm-affekt/tgytbot/internal/downloader"
 	"github.com/vm-affekt/tgytbot/internal/logging"
-	"io"
-	"math"
-	"sync"
-	"time"
 )
 
 const (
@@ -134,7 +135,7 @@ func (d *dialog) printCurrentDownloadStatus(ctx context.Context) error {
 		estimatedTime = estimatedTime.Round(time.Second)
 		estimatedTimeS = fmt.Sprintf("%s", estimatedTime)
 	}
-	return d.sendMsgWithKeyboardThenDeletef(ctx, "На данный момент загружено <i>%.2fMB</i> из <i>%.2fMB</i>: <b>%.2f%%</b>\nПриблизительно осталось: <b>%s</b>", currentDownloadedMB, contentLenMB, pc.Percentage(), estimatedTimeS)
+	return d.sendMsgWithKeyboardThenDeletef(ctx, "На данный момент загружено\n<i>%.2fMB</i> из <i>%.2fMB</i>: <b>%.2f%%</b>\nПриблизительно осталось: <b>%s</b>", currentDownloadedMB, contentLenMB, pc.Percentage(), estimatedTimeS)
 }
 
 func (d *dialog) onDownloading(ctx context.Context, text string) error {
@@ -171,6 +172,7 @@ func (d *dialog) startAudioDownloading(ctx context.Context, link string) {
 		} else {
 			textMsg = "При скачивании аудио из данного видео произошла техническая ошибка. Повторите попытку позже!"
 		}
+		textMsg += fmt.Sprintf("\n\nТекст ошибки:\n<code>%s</code>", err.Error())
 		_, _ = app.SendMessagef(context.Background(), d.rup, textMsg) // TODO: КОД ОШИБКИ!
 	}
 }

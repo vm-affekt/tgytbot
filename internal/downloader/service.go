@@ -52,9 +52,7 @@ func (s *Service) DownloadVideo(ctx context.Context, link string) (app.DownloadR
 
 func (s *Service) downloadStream(ctx context.Context, link string, formatType string) (result app.DownloadResult, err error) {
 	log := logging.FromContextS(ctx)
-	ytClient := &youtube.Client{
-		Debug: s.debugMode,
-	}
+	ytClient := new(youtube.Client)
 
 	link = s.transformLink(ctx, link)
 	video, err := ytClient.GetVideo(link)
